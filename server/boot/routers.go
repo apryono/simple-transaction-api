@@ -38,4 +38,8 @@ func (boot Boot) RegisterRouters() {
 	customerRoutes := routers.CustomerRoutes{RouterGroup: apiV1, Handler: handler}
 	customerRoutes.RegisterRoute()
 
+	// // Checkout route
+	checkoutRoutes := routers.CheckoutRoutes{RouterGroup: apiV1, Handler: handler}
+	checkoutRoutes.RegisterRoute()
+
 }

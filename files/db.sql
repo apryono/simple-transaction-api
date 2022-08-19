@@ -43,3 +43,33 @@ create table customers (
 	deleted_at TIMESTAMP WITH TIME ZONE 
 );
 CREATE TRIGGER users BEFORE UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+CREATE TABLE transactions (
+	id serial PRIMARY KEY,
+	transaction_number TEXT CHECK (char_length(transaction_number) <= 255),
+	customer_id int4 NOT NULL REFERENCES customers(id),
+	pic_name TEXT NOT NULL CHECK (char_length(pic_name) <= 255),
+	pic_phone TEXT NULL CHECK (char_length(pic_phone) <= 255),
+	pic_email TEXT NULL CHECK (char_length(pic_email) <= 255),
+	total_price numeric(20,3) DEFAULT 0,
+	type_of_payment TEXT NULL CHECK (char_length(type_of_payment) <= 50),
+	note TEXT,
+	status text,
+	created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	deleted_at TIMESTAMP WITH TIME ZONE 
+);
+CREATE TRIGGER transactions BEFORE UPDATE ON transactions FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
+
+CREATE TABLE transaction_details (
+	id serial PRIMARY KEY,
+	transaction_id int4 NOT NULL REFERENCES transactions(id),
+	product_id int4 NOT NULL REFERENCES products(id),
+	product_name TEXT NOT NULL CHECK (char_length(product_name) <= 255),
+	product_price numeric(20,3) DEFAULT 0,
+	product_quantity int4 DEFAULT 0,
+	created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	deleted_at TIMESTAMP WITH TIME ZONE 
+);
+CREATE TRIGGER transaction_details BEFORE UPDATE ON transaction_details FOR EACH ROW EXECUTE PROCEDURE update_modified_column();
