@@ -44,3 +44,20 @@ func (uc TransactionUC) AddTransaction(c context.Context, input *requests.Transa
 
 	return res, err
 }
+
+// FindByID ...
+func (uc TransactionUC) FindByID(c context.Context, data models.TransactionParameter) (res models.Transaction, err error) {
+	repo := repository.NewTransactionRepository(uc.DB, uc.Tx)
+	res, err = repo.FindByID(c, data.ID)
+	if err != nil {
+		logrus.Println("[FindByID.FindByID.AddTransaction] Err : ", err)
+		if err == sql.ErrNoRows {
+			return res, errors.New("Data not found")
+		}
+		return res, errors.New("Something went error")
+	}
+
+	uc.BuildBody(&res)
+
+	return res, err
+}

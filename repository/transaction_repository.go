@@ -3,12 +3,14 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"simple-transaction-api/pkg/str"
 	"simple-transaction-api/repository/models"
 )
 
 // ITransactionRepository ...
 type ITransactionRepository interface {
 	Add(c context.Context, model *models.Transaction) (res int, err error)
+	FindByID(c context.Context, id int) (res models.Transaction, err error)
 }
 
 // TransactionRepository ...
@@ -20,6 +22,19 @@ type TransactionRepository struct {
 // NewTransactionRepository ...
 func NewTransactionRepository(DB *sql.DB, Tx *sql.Tx) ITransactionRepository {
 	return &TransactionRepository{DB: DB, Tx: Tx}
+}
+
+func (repository TransactionRepository) scanRow(row *sql.Row) (res models.Transaction, err error) {
+	err = row.Scan(
+		&res.ID, &res.TransactionNumber, &res.CustomerID, &models.UnmarshalModel{To: &res.Customer}, &res.PicName, &res.PicPhone, &res.PicEmail,
+		&res.TotalPrice, &res.TypeOfPayment, &models.UnmarshalModel{To: &res.TransactionDetails},
+		&res.Note, &res.Status, &res.CreatedAt, &res.UpdatedAt,
+	)
+	if err != nil {
+		return res, err
+	}
+
+	return res, err
 }
 
 // Add ...
@@ -43,4 +58,16 @@ func (repository TransactionRepository) Add(c context.Context, model *models.Tra
 		return res, err
 	}
 	return res, nil
+}
+
+// FindByID ...
+func (repository TransactionRepository) FindByID(c context.Context, id int) (res models.Transaction, err error) {
+
+	statement := str.Spacing(models.TransactionSelectStatement, models.TransactionWhereStatement, ` AND def.id = $1`, models.TransactionGroupByStatement)
+	row := repository.DB.QueryRowContext(c, statement, id)
+	res, err = repository.scanRow(row)
+	if err != nil {
+		return res, err
+	}
+	return res, err
 }
