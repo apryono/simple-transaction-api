@@ -42,4 +42,8 @@ func (boot Boot) RegisterRouters() {
 	checkoutRoutes := routers.CheckoutRoutes{RouterGroup: apiV1, Handler: handler}
 	checkoutRoutes.RegisterRoute()
 
+	// // Transaction route
+	transactionRoutes := routers.TransactionRoutes{RouterGroup: apiV1, Handler: handler}
+	transactionRoutes.RegisterRoute()
+
 }

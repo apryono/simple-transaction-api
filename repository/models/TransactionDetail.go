@@ -8,9 +8,9 @@ type TransactionDetail struct {
 	ProductName     string  `json:"product_name"`
 	ProductPrice    float64 `json:"product_price"`
 	ProductQuantity int     `json:"product_quantity"`
-	CreatedAt       string  `json:"created_at"`
-	UpdatedAt       string  `json:"updated_at"`
-	DeletedAt       *string `json:"deleted_at"`
+	CreatedAt       string  `json:"created_at,omitempty"`
+	UpdatedAt       string  `json:"updated_at,omitempty"`
+	DeletedAt       *string `json:"deleted_at,omitempty"`
 }
 
 // TransactionDetailParameter ...
