@@ -36,3 +36,32 @@ func (h *TransactionHandler) FindByID(w http.ResponseWriter, r *http.Request) {
 	helper.Response(w, http.StatusOK, res)
 	return
 }
+
+// FindAllTransaction ...
+func (h *TransactionHandler) FindAllTransaction(w http.ResponseWriter, r *http.Request) {
+	c := context.Background()
+
+	search, ok := r.URL.Query()["search"]
+	if !ok || len(search[0]) < 1 {
+		search = append(search, "")
+	}
+	customerID, ok := r.URL.Query()["customer_id"]
+	if !ok || len(customerID[0]) < 1 {
+		customerID = append(customerID, "0")
+	}
+
+	param := models.TransactionParameter{
+		Search:     search[0],
+		CustomerID: str.StringToInt(customerID[0]),
+	}
+
+	uc := usecase.TransactionUC{ContractUC: h.ContractUC}
+	res, err := uc.FindAllTransaction(c, param)
+	if err != nil {
+		helper.ResponseErr(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	helper.Response(w, http.StatusOK, res)
+	return
+}

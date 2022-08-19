@@ -22,4 +22,5 @@ func (route TransactionRoutes) RegisterRoute() {
 	v1 := route.RouterGroup.PathPrefix("/api/transaction").Subrouter()
 	r := v1.NewRoute().Subrouter()
 	r.Handle("/id/{transaction_id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(handler.FindByID))).Methods(http.MethodGet)
+	r.Handle("/findAll", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(handler.FindAllTransaction))).Methods(http.MethodGet)
 }
