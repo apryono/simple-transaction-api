@@ -11,6 +11,8 @@ import (
 type IBrandRepository interface {
 	Add(c context.Context, model *models.Brand) (res int, err error)
 	FindByID(c context.Context, id int) (res models.Brand, err error)
+	FindAll(c context.Context, param models.BrandParameter) (res []models.Brand, err error)
+	FindByIDWithProduct(c context.Context, id int) (res models.Brand, err error)
 }
 
 // BrandRepository ...
@@ -26,6 +28,28 @@ func NewBrandRepository(DB *sql.DB, Tx *sql.Tx) IBrandRepository {
 
 func (repository BrandRepository) scanRow(row *sql.Row) (res models.Brand, err error) {
 	err = row.Scan(
+		&res.ID, &res.Name, &res.Description, &res.MadeIn, &res.Status, &res.CreatedAt, &res.UpdatedAt,
+	)
+	if err != nil {
+		return res, err
+	}
+
+	return res, err
+}
+
+func (repository BrandRepository) scanRowWithProduct(row *sql.Row) (res models.Brand, err error) {
+	err = row.Scan(
+		&res.ID, &res.Name, &res.Description, &res.MadeIn, &models.UnmarshalModel{To: &res.Products}, &res.Status, &res.CreatedAt, &res.UpdatedAt,
+	)
+	if err != nil {
+		return res, err
+	}
+
+	return res, err
+}
+
+func (repository BrandRepository) scanRows(rows *sql.Rows) (res models.Brand, err error) {
+	err = rows.Scan(
 		&res.ID, &res.Name, &res.Description, &res.MadeIn, &res.Status, &res.CreatedAt, &res.UpdatedAt,
 	)
 	if err != nil {
@@ -61,6 +85,44 @@ func (repository BrandRepository) FindByID(c context.Context, id int) (res model
 	statement := str.Spacing(models.BrandSelectStatement, models.BrandWhereStatement, ` AND id = $1`)
 	row := repository.DB.QueryRowContext(c, statement, id)
 	res, err = repository.scanRow(row)
+	if err != nil {
+		return res, err
+	}
+	return res, err
+}
+
+// FindAll ...
+func (repository BrandRepository) FindAll(c context.Context, param models.BrandParameter) (res []models.Brand, err error) {
+	var condition string
+	if param.Search != "" {
+		condition += ` AND name ilike '%` + param.Search + `%'`
+	}
+
+	statement := str.Spacing(models.BrandSelectStatement, models.BrandWhereStatement, condition)
+
+	rows, err := repository.DB.QueryContext(c, statement)
+	if err != nil {
+		return res, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		temp, err := repository.scanRows(rows)
+		if err != nil {
+			return res, err
+		}
+		res = append(res, temp)
+	}
+
+	return res, err
+}
+
+// FindByIDWithProduct ...
+func (repository BrandRepository) FindByIDWithProduct(c context.Context, id int) (res models.Brand, err error) {
+
+	statement := str.Spacing(models.BrandDefSelectStatement, models.BrandDefWhereStatement, ` AND def.id = $1`, models.BrandDefGroupByStatement)
+	row := repository.DB.QueryRowContext(c, statement, id)
+	res, err = repository.scanRowWithProduct(row)
 	if err != nil {
 		return res, err
 	}
