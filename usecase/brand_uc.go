@@ -52,6 +52,8 @@ func (uc BrandUC) FindByID(c context.Context, data models.BrandParameter) (res m
 		return res, errors.New("Something went error")
 	}
 
+	uc.BuildBody(&res)
+
 	return res, err
 }
 
@@ -86,6 +88,8 @@ func (uc BrandUC) FindByIDWithProduct(c context.Context, data models.BrandParame
 		}
 		return res, errors.New("Something went error")
 	}
+
+	uc.BuildBody(&res)
 
 	return res, err
 }
