@@ -54,6 +54,8 @@ func (uc ProductUC) FindByID(c context.Context, data models.ProductParameter) (r
 		return res, errors.New("Something went error")
 	}
 
+	uc.BuildBody(&res)
+
 	return res, err
 }
 
