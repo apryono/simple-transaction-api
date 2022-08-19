@@ -22,4 +22,6 @@ func (route ProductRoutes) RegisterRoute() {
 	v1 := route.RouterGroup.PathPrefix("/api/product").Subrouter()
 	r := v1.NewRoute().Subrouter()
 	r.Handle("", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(handler.AddProduct))).Methods(http.MethodPost)
+	r.Handle("/id/{product_id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(handler.FindByID))).Methods(http.MethodGet)
+	r.Handle("/findAll", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(handler.FindAllProduct))).Methods(http.MethodGet)
 }

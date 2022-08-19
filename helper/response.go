@@ -16,3 +16,9 @@ func Response(w http.ResponseWriter, code int, data interface{}) {
 func Message(status bool, message string) map[string]interface{} {
 	return map[string]interface{}{"success": status, "message": message}
 }
+
+// ResponseErr return error response
+func ResponseErr(w http.ResponseWriter, code int, data interface{}) {
+	msg := Message(false, data.(string))
+	Response(w, code, msg)
+}
