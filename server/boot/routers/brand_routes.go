@@ -22,4 +22,5 @@ func (route BrandRoutes) RegisterRoute() {
 	v1 := route.RouterGroup.PathPrefix("/api/brand").Subrouter()
 	r := v1.NewRoute().Subrouter()
 	r.Handle("", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(handler.AddBrand))).Methods(http.MethodPost)
+	r.Handle("/id/{brand_id}", handlers.LoggingHandler(os.Stdout, http.HandlerFunc(handler.FindByID))).Methods(http.MethodGet)
 }
