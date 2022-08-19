@@ -61,3 +61,23 @@ func (uc TransactionUC) FindByID(c context.Context, data models.TransactionParam
 
 	return res, err
 }
+
+// FindAllTransaction ...
+func (uc TransactionUC) FindAllTransaction(c context.Context, param models.TransactionParameter) (res []models.Transaction, err error) {
+	repo := repository.NewTransactionRepository(uc.DB, uc.Tx)
+	res, err = repo.FindAll(c, param)
+	if err != nil {
+		logrus.Println("[FindAll.FindAllTransaction.TransactionUC] Err : ", err)
+		return res, err
+	}
+
+	if len(res) < 1 {
+		return res, errors.New("Data not found")
+	}
+
+	for i := range res {
+		uc.BuildBody(&res[i])
+	}
+
+	return res, err
+}

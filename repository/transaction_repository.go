@@ -5,12 +5,14 @@ import (
 	"database/sql"
 	"simple-transaction-api/pkg/str"
 	"simple-transaction-api/repository/models"
+	"strconv"
 )
 
 // ITransactionRepository ...
 type ITransactionRepository interface {
 	Add(c context.Context, model *models.Transaction) (res int, err error)
 	FindByID(c context.Context, id int) (res models.Transaction, err error)
+	FindAll(c context.Context, param models.TransactionParameter) (res []models.Transaction, err error)
 }
 
 // TransactionRepository ...
@@ -26,6 +28,19 @@ func NewTransactionRepository(DB *sql.DB, Tx *sql.Tx) ITransactionRepository {
 
 func (repository TransactionRepository) scanRow(row *sql.Row) (res models.Transaction, err error) {
 	err = row.Scan(
+		&res.ID, &res.TransactionNumber, &res.CustomerID, &models.UnmarshalModel{To: &res.Customer}, &res.PicName, &res.PicPhone, &res.PicEmail,
+		&res.TotalPrice, &res.TypeOfPayment, &models.UnmarshalModel{To: &res.TransactionDetails},
+		&res.Note, &res.Status, &res.CreatedAt, &res.UpdatedAt,
+	)
+	if err != nil {
+		return res, err
+	}
+
+	return res, err
+}
+
+func (repository TransactionRepository) scanRows(rows *sql.Rows) (res models.Transaction, err error) {
+	err = rows.Scan(
 		&res.ID, &res.TransactionNumber, &res.CustomerID, &models.UnmarshalModel{To: &res.Customer}, &res.PicName, &res.PicPhone, &res.PicEmail,
 		&res.TotalPrice, &res.TypeOfPayment, &models.UnmarshalModel{To: &res.TransactionDetails},
 		&res.Note, &res.Status, &res.CreatedAt, &res.UpdatedAt,
@@ -69,5 +84,35 @@ func (repository TransactionRepository) FindByID(c context.Context, id int) (res
 	if err != nil {
 		return res, err
 	}
+	return res, err
+}
+
+// FindAll ...
+func (repository TransactionRepository) FindAll(c context.Context, param models.TransactionParameter) (res []models.Transaction, err error) {
+	var condition string
+	if param.Search != "" {
+		condition += ` AND def.transaction_number ilike '%` + param.Search + `%'`
+	}
+
+	if param.CustomerID != 0 {
+		condition += ` AND def.customer_id = ` + strconv.Itoa(param.CustomerID)
+	}
+
+	statement := str.Spacing(models.TransactionSelectStatement, models.TransactionWhereStatement, condition, models.TransactionGroupByStatement)
+
+	rows, err := repository.DB.QueryContext(c, statement)
+	if err != nil {
+		return res, err
+	}
+
+	defer rows.Close()
+	for rows.Next() {
+		temp, err := repository.scanRows(rows)
+		if err != nil {
+			return res, err
+		}
+		res = append(res, temp)
+	}
+
 	return res, err
 }
