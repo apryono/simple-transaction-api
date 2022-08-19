@@ -1,6 +1,7 @@
 package boot
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -18,15 +19,21 @@ func (boot Boot) RegisterRouters() {
 		ContractUC: &boot.ContractUC,
 	}
 
+	fmt.Println("data masuk")
 	boot.App.Handle("/", hd.LoggingHandler(os.Stdout, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := helper.Message(true, "Welcome to Simple API")
 		helper.Response(w, http.StatusOK, response)
 		return
 	}))).Methods(http.MethodGet)
 
-	apiV1 := boot.App.PathPrefix("/v1")
+	apiV1 := boot.App.PathPrefix("/v1").Subrouter()
 
-	custRoutes := routers.CustomerRoutes{RouterGroup: apiV1, Handler: handler}
-	custRoutes.RegisterRoute()
+	// brand route
+	brandRoutes := routers.BrandRoutes{RouterGroup: apiV1, Handler: handler}
+	brandRoutes.RegisterRoute()
+
+	// // product route
+	productRoutes := routers.ProductRoutes{RouterGroup: apiV1, Handler: handler}
+	productRoutes.RegisterRoute()
 
 }
