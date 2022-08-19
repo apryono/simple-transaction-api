@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	conf "simple-transaction-api/config"
+	"simple-transaction-api/helper"
 
 	"simple-transaction-api/server/boot"
 	"simple-transaction-api/usecase"
@@ -34,12 +35,17 @@ func main() {
 		ContractUC: ContractUC,
 	}
 
-	headersOk := handlers.AllowedHeaders([]string{"*"})
+	bt.RegisterRouters()
+	
+	bt.App.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := helper.Message(false, "URL not found")
+		helper.Response(w, http.StatusNotFound, response)
+		return
+	})
+	
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization"})
 	originsOk := handlers.AllowedOrigins([]string{configs.EnvConfig["APP_CORS_DOMAIN"]})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD"})
-	bt.App.Use(handlers.CORS(headersOk, originsOk, methodsOk))
-
-	bt.RegisterRouters()
 	log.Println("Server start at " + configs.EnvConfig["APP_HOST"])
-	log.Fatalln(http.ListenAndServe(configs.EnvConfig["APP_HOST"], bt.App))
+	log.Fatalln(http.ListenAndServe(configs.EnvConfig["APP_HOST"], handlers.CORS(headersOk, originsOk, methodsOk)(bt.App)))
 }
